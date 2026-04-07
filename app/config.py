@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60 * 24 * 7
     mock_payments: bool = True
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # Tuỳ chọn: bật khi deploy Vercel (preview + production *.vercel.app), ví dụ
+    # ^https://.*\.vercel\.app$
+    cors_origin_regex: str = ""
 
     @field_validator("database_url", mode="after")
     @classmethod

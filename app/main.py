@@ -22,12 +22,29 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
-origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
-# CORS: allow_credentials=True is invalid with allow_origins=["*"] — browsers get OPTIONS 400.
-credential_origins = bool(origins)
+def _parse_cors_origins(raw: str) -> list[str]:
+    # Origin không có path; thừa "/" cuối trong env làm lệch so với header trình duyệt → OPTIONS 400.
+    out: list[str] = []
+    for part in raw.split(","):
+        o = part.strip().rstrip("/")
+        if o:
+            out.append(o)
+    return out
+
+
+origins = _parse_cors_origins(settings.cors_origins)
+regex = (settings.cors_origin_regex or "").strip() or None
+# allow_credentials=True với allow_origins=["*"] là invalid — Starlette trả 400 preflight.
+allow_origins_list: list[str] = ["*"]
+if origins:
+    allow_origins_list = origins
+elif regex:
+    allow_origins_list = []
+credential_origins = bool(origins) or bool(regex)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins if origins else ["*"],
+    allow_origins=allow_origins_list,
+    allow_origin_regex=regex,
     allow_credentials=credential_origins,
     allow_methods=["*"],
     allow_headers=["*"],
