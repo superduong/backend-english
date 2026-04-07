@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models import BookingStatus, PaymentStatus, UserRole
@@ -81,6 +83,24 @@ class BookingOut(BaseModel):
     created_at: datetime
 
 
+PaymentProviderId = Literal["mock", "vnpay", "momo", "zalopay", "bank_qr"]
+
+
+class PaymentCheckoutIn(BaseModel):
+    provider: PaymentProviderId = "mock"
+
+
+class PaymentProviderItem(BaseModel):
+    id: PaymentProviderId
+    label: str
+    kind: Literal["mock", "redirect", "qr"]
+    enabled: bool
+
+
+class PaymentProvidersOut(BaseModel):
+    providers: list[PaymentProviderItem]
+
+
 class PaymentCheckoutOut(BaseModel):
     payment_id: int
     booking_id: int
@@ -88,6 +108,17 @@ class PaymentCheckoutOut(BaseModel):
     provider: str
     mock_mode: bool
     message_vi: str
+    redirect_url: str | None = None
+    qr_image_url: str | None = None
+
+
+class VnpayClientVerifyOut(BaseModel):
+    """Kết quả xác thực query VNPay gửi từ SPA /payment/callback."""
+
+    signature_valid: bool
+    response_code: str | None = None
+    message_vi: str
+    booking_confirmed: bool = False
 
 
 class PaymentOut(BaseModel):
