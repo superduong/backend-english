@@ -497,8 +497,8 @@ def _vnpay_response_message_user(code: str | None) -> str:
 
 @router.post("/verify/vnpay-client", response_model=VnpayClientVerifyOut)
 def verify_vnpay_client(
-    db: Session = Depends(get_db),
     params: Annotated[dict[str, str], Body(...)],
+    db: Session = Depends(get_db),
 ):
     """
     SPA /payment/callback gửi toàn bộ query VNPay (JSON object) — server kiểm HMAC và cập nhật booking.
